@@ -19,7 +19,7 @@
 
   <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
-<div class="sidebar-icons">
+  <div class="sidebar-icons">
     <img src="icons/icon-beranda.png" class="sidebar-icon" id="dot-beranda" />
     <img src="icons/icon-tentang.png" class="sidebar-icon" id="dot-tentang" />
     <img src="icons/icon-kaderisasi.png" class="sidebar-icon" id="dot-kaderisasi" />
@@ -31,8 +31,7 @@
     <img src="icons/icon-user.png" class="sidebar-icon" id="dot-login-user" />
     <img src="icons/icon-admin.png" class="sidebar-icon" id="dot-login-admin" />
     <img src="icons/icon-admin-panel.png" class="sidebar-icon" id="sidebar-dot" style="display: none;" />
-</div>
-
+  </div>
   <div class="sidebar" id="sidebar">
     <a href="index.html" class="sidebar-item">Beranda</a>
     <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
@@ -78,18 +77,17 @@
   
     if (isAdmin && form) form.style.display = 'block';
   
-    form?.addEventListener('submit', function (e) {
+    form?.addEventListener('submit', async function (e) {
       e.preventDefault();
       const judul = document.getElementById('judul').value.trim();
       const isi = document.getElementById('isi').value.trim();
       const deskripsi = isi.substring(0, 100) + (isi.length > 100 ? '...' : '');
       const gambarFile = document.getElementById('gambar').files[0];
   
-      if (!judul || !isi || !gambarFile) return;
+      if (!judul || !isi || !gambarFile) return alert("Lengkapi semua kolom!");
   
       const reader = new FileReader();
-      reader.onload = function () {
-        const berita = JSON.parse(localStorage.getItem('beritaList') || '[]');
+      reader.onload = async function () {
         const newEntry = {
           id: Date.now().toString(),
           judul,
@@ -97,8 +95,23 @@
           isi,
           gambar: reader.result
         };
+  
+        // Simpan ke localStorage
+        const berita = JSON.parse(localStorage.getItem('beritaList') || '[]');
         berita.unshift(newEntry);
         localStorage.setItem('beritaList', JSON.stringify(berita));
+  
+        // Simpan ke Google Sheets via Web App
+        try {
+          await fetch('https://script.google.com/macros/s/AKfycbxFkIYMWoD1GWx3g1kUnQDDjxIURy2alnS40Br6K-8pySNlFzTqIhFknxrqOOId_0-SpA/exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newEntry)
+          });
+        } catch (err) {
+          console.error('Gagal simpan ke Web App:', err.message);
+        }
+  
         form.reset();
         renderBerita();
       };
