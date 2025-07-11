@@ -95,12 +95,6 @@
           isi,
           gambar: reader.result
         };
-  
-        // Simpan ke localStorage
-        const berita = JSON.parse(localStorage.getItem('beritaList') || '[]');
-        berita.unshift(newEntry);
-        localStorage.setItem('beritaList', JSON.stringify(berita));
-  
         // Simpan ke Google Sheets via Web App
         try {
           await fetch('https://script.google.com/macros/s/AKfycbxFkIYMWoD1GWx3g1kUnQDDjxIURy2alnS40Br6K-8pySNlFzTqIhFknxrqOOId_0-SpA/exec', {
