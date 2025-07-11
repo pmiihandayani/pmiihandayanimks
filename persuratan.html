@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Persuratan - PMII</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <div></div>
+    <div class="logo-kanan">
+      <div class="bulat-kuning"></div>
+      <span>PMII Makassar</span>
+      <button class="logout-header-button" id="logout-btn" onclick="logoutUser()" style="display: none;">Logout</button>
+    </div>
+  </div>
+
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <!-- SIDEBAR DOTS -->
+  <div class="sidebar-dots">
+    <div class="sidebar-dot" id="dot-beranda"></div>    
+    <div class="sidebar-dot" id="dot-tentang"></div>
+    <div class="sidebar-dot" id="dot-kaderisasi"></div>
+    <div class="sidebar-dot" id="dot-persuratan"></div>
+    <div class="sidebar-dot" id="dot-berita"></div>
+    <div class="sidebar-dot" id="dot-galeri"></div>
+    <div class="sidebar-dot" id="dot-anggota"></div>
+    <div class="sidebar-dot" id="dot-ruang-diskusi" style="display: none;"></div>
+    <div class="sidebar-dot" id="dot-login-user"></div>
+    <div class="sidebar-dot" id="dot-login-admin"></div>
+    <div id="sidebar-dot" class="sidebar-dot" style="display: none;"></div> 
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-item">Beranda</a>
+    <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
+    <a href="#" class="sidebar-item" id="menu-kaderisasi">Kaderisasi</a>
+    <a href="persuratan.html" class="sidebar-item" id="menu-persuratan">Persuratan</a>
+    <a href="berita.html" class="sidebar-item">Berita</a>
+    <a href="galeri.html" class="sidebar-item" id="menu-galeri">Galeri</a>
+    <a href="#" class="sidebar-item" id="menu-anggota">Anggota</a>
+    <a href="#" class="sidebar-item" id="menu-ruang-diskusi" id="obrolan" style="display: none;">Ruang Diskusi</a>
+    <a href="login.html" class="sidebar-item" id="menu-login-user">Login User</a>
+    <a href="admin_login.html   " class="sidebar-item">Login Admin</a>
+    <a href="admin_panel.html" class="sidebar-item" id="menu-admin-panel" style="display: none;">Admin Panel</a>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="welcome-section">
+      <h1 class="welcome-title">Manajemen Persuratan</h1>
+      <p class="welcome-subtitle">Upload & Kelola Surat Masuk</p>
+
+      <form id="uploadForm" style="margin-bottom: 30px;">
+        <input type="text" id="namaSurat" placeholder="Nama Dokumen"
+               style="margin-bottom: 10px; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;" />
+      
+        <!-- File input + upload button in a row -->
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- Hidden file input -->
+          <input type="file" id="suratInput" accept=".pdf,.docx" style="display: none;" />
+      
+          <!-- Label as styled button -->
+          <label for="suratInput" id="customFileBtn"
+                 style="padding: 10px 20px; background-color: #2563eb; color: white; border-radius: 6px; font-weight: bold; cursor: pointer;">
+            📎 Pilih File Surat
+          </label>
+      
+          <!-- Upload button, styled to match -->
+          <button type="submit" class="logout-header-button"
+                  style="padding: 10px 20px; background-color: #e4e4e4; color: #2563eb; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">
+            🚀 Upload
+          </button>
+      
+          <!-- Nama file -->
+          <span id="fileName" style="font-size: 14px; font-style: italic;">Belum ada file</span>
+        </div>
+      </form>
+      
+      
+
+      <div class="news-section">
+        <h2 class="news-title">Daftar Surat</h2>
+        <ul id="daftarSurat" style="list-style: none; padding: 0;"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('uploadForm');
+      const input = document.getElementById('suratInput');
+      const judulInput = document.getElementById('namaSurat');
+      const list = document.getElementById('daftarSurat');
+      const fileNameSpan = document.getElementById('fileName');
+      const isAdmin = localStorage.getItem('isAdmin') === 'true';
+      const isUser = localStorage.getItem('isUser') === 'true';
+    
+      function renderSuratList() {
+        const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+        list.innerHTML = '';
+        surat.forEach((obj, i) => {
+          const li = document.createElement('li');
+          li.style.marginBottom = '10px';
+          li.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px 15px; border-radius:8px;">
+              <span>📄 ${obj.nama}</span>
+              <div>
+                <a href="${obj.url}" download>
+                  <button style="margin-right:10px; background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold;">Download</button>
+                </a>
+                ${isAdmin ? `<button onclick="hapusSurat(${i})" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hapus</button>` : ''}
+              </div>
+            </div>`;
+          list.appendChild(li);
+        });
+      }
+    
+      window.hapusSurat = (i) => {
+        const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+        surat.splice(i, 1);
+        localStorage.setItem('suratList', JSON.stringify(surat));
+        renderSuratList();
+      };
+    
+      if (!(isAdmin || isUser)) form.style.display = 'none';
+    
+      input.addEventListener('change', () => {
+        fileNameSpan.textContent = input.files[0]?.name || 'Belum ada file';
+      });
+    
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const file = input.files[0];
+        const nama = judulInput.value.trim();
+        if (!file || !nama) return alert('Isi nama & pilih file!');
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const res = await fetch('YOUR_WEBAPP_URL', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                namaSurat: nama,
+                fileBase64: reader.result,
+                mimeType: file.type
+              })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+              const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+              surat.unshift({ nama, url: data.url });
+              localStorage.setItem('suratList', JSON.stringify(surat));
+              renderSuratList();
+              judulInput.value = '';
+              input.value = '';
+              fileNameSpan.textContent = 'Belum ada file';
+            } else alert('Upload gagal: ' + data.message);
+          } catch(err) {
+            alert('Kesalahan jaringan: ' + err.message);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    
+      renderSuratList();
+    });
+    </script>
+    
+</body>
+</html>

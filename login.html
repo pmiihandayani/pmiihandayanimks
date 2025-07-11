@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login User - PMII</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background-color: white;
+      padding: 40px 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .logo-circle {
+      width: 30px;
+      height: 30px;
+      background-color: #eab308;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .login-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .login-button {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .login-button:hover {
+      background-color: #1e4fc1;
+    }
+
+    .forgot-password {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .forgot-password a {
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo-circle"></div>
+      <div class="login-title">Login User</div>
+    </div>
+
+    <form onsubmit="return userLogin(event)">
+      <div class="form-group">
+        <label for="username">Email atau Username</label>
+        <input type="text" id="username" name="username" placeholder="Masukkan email atau username" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Kata Sandi</label>
+        <input type="password" id="password" name="password" placeholder="Masukkan kata sandi" required />
+      </div>
+
+      <button type="submit" class="login-button">Masuk</button>
+
+      <div class="forgot-password">
+        <a href="#">Lupa kata sandi?</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="error-msg" id="error-msg" style="color: red; text-align: center; margin-top: 10px;"></div>
+</body>
+</html>

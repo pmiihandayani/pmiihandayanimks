@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Berita - PMII</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div></div>
+    <div class="logo-kanan">
+      <div class="bulat-kuning"></div>
+      <span>PMII Makassar</span>
+      <button class="logout-header-button" id="logout-btn" onclick="logoutUser()" style="display: none;">Logout</button>
+    </div>
+  </div>
+
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+  <div class="sidebar-dots">
+    <div class="sidebar-dot" id="dot-beranda"></div>    
+    <div class="sidebar-dot" id="dot-tentang"></div>
+    <div class="sidebar-dot" id="dot-kaderisasi"></div>
+    <div class="sidebar-dot" id="dot-persuratan"></div>
+    <div class="sidebar-dot" id="dot-berita"></div>
+    <div class="sidebar-dot" id="dot-galeri"></div>
+    <div class="sidebar-dot" id="dot-anggota"></div>
+    <div class="sidebar-dot" id="dot-ruang-diskusi" style="display: none;"></div>
+    <div class="sidebar-dot" id="dot-login-user"></div>
+    <div class="sidebar-dot" id="dot-login-admin"></div>
+    <div id="sidebar-dot" class="sidebar-dot" style="display: none;"></div> 
+  </div>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-item">Beranda</a>
+    <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
+    <a href="#" class="sidebar-item" id="menu-kaderisasi">Kaderisasi</a>
+    <a href="persuratan.html" class="sidebar-item" id="menu-persuratan">Persuratan</a>
+    <a href="berita.html" class="sidebar-item">Berita</a>
+    <a href="galeri.html" class="sidebar-item" id="menu-galeri">Galeri</a>
+    <a href="#" class="sidebar-item" id="menu-anggota">Anggota</a>
+    <a href="#" class="sidebar-item" id="menu-ruang-diskusi" id="obrolan" style="display: none;">Ruang Diskusi</a>
+    <a href="login.html" class="sidebar-item" id="menu-login-user">Login User</a>
+    <a href="admin_login.html   " class="sidebar-item">Login Admin</a>
+    <a href="admin_panel.html" class="sidebar-item" id="menu-admin-panel" style="display: none;">Admin Panel</a>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <div class="main-content">
+    <div class="welcome-section">
+      <h1 class="welcome-title">Berita PMII</h1>
+
+      <form id="beritaForm" style="margin-bottom: 30px; display: none;">
+        <input type="text" id="judul" placeholder="Judul Berita" style="padding:10px; width:100%; margin-bottom:10px;" required />
+        <textarea id="isi" placeholder="Isi lengkap berita" style="padding:10px; width:100%; height:100px; margin-bottom:10px;" required></textarea>
+        <button type="submit" style="padding:10px 20px; background:#2563eb; color:white; border:none; border-radius:6px;">➕ Tambah Berita</button>
+        <input type="file" id="gambar" accept="image/*" style="display: none;" />
+        <label for="gambar" id="customFileBtn"
+         style="padding: 10px 20px; background-color:#2563eb; color:white; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px;">
+        📎 Pilih Gambar Berita
+        </label>
+        <span id="fileName" style="margin-left: 10px; font-style: italic; font-size: 14px;">Belum ada file</span>
+      </form>
+
+      <div class="news-section">
+        <h2 class="news-title">Daftar Berita</h2>
+        <div class="news-grid" id="beritaGrid"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const form = document.getElementById('beritaForm');
+    const grid = document.getElementById('beritaGrid');
+  
+    if (isAdmin && form) form.style.display = 'block';
+  
+    form?.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const judul = document.getElementById('judul').value.trim();
+      const isi = document.getElementById('isi').value.trim();
+      const deskripsi = isi.substring(0, 100) + (isi.length > 100 ? '...' : '');
+      const gambarFile = document.getElementById('gambar').files[0];
+  
+      if (!judul || !isi || !gambarFile) return;
+  
+      const reader = new FileReader();
+      reader.onload = function () {
+        const berita = JSON.parse(localStorage.getItem('beritaList') || '[]');
+        const newEntry = {
+          id: Date.now().toString(),
+          judul,
+          deskripsi,
+          isi,
+          gambar: reader.result
+        };
+        berita.unshift(newEntry);
+        localStorage.setItem('beritaList', JSON.stringify(berita));
+        form.reset();
+        renderBerita();
+      };
+      reader.readAsDataURL(gambarFile);
+    });
+  
+    function renderBerita() {
+      const list = JSON.parse(localStorage.getItem('beritaList') || '[]');
+      grid.innerHTML = '';
+  
+      list.forEach(berita => {
+        const link = document.createElement('a');
+        link.href = `berita_detail.html?id=${berita.id}`;
+        link.style.textDecoration = 'none';
+        link.style.color = 'inherit';
+  
+        const card = document.createElement('div');
+        card.className = 'news-card';
+        card.innerHTML = `
+          <img src="${berita.gambar}" class="news-image" style="height: 120px; object-fit: cover;" />
+          <div class="news-footer">
+            <div style="font-weight:bold;">${berita.judul}</div>
+            <div style="font-size: 13px; color: #eee;">${berita.deskripsi}</div>
+            ${isAdmin ? `<button onclick="event.preventDefault(); hapus('${berita.id}')" style="margin-top:8px; padding:4px 10px; font-size:12px; background:red; color:white; border:none; border-radius:4px;">Hapus</button>` : ''}
+          </div>
+        `;
+        link.appendChild(card);
+        grid.appendChild(link);
+      });
+    }
+  
+    function hapus(id) {
+      const berita = JSON.parse(localStorage.getItem('beritaList') || '[]');
+      const filtered = berita.filter(item => item.id !== id);
+      localStorage.setItem('beritaList', JSON.stringify(filtered));
+      renderBerita();
+    }
+  
+    renderBerita();
+  </script>
+  
+</body>
+</html>

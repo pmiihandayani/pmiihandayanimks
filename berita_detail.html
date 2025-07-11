@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detail Berita</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header">
+    <div></div> <!-- Empty div for spacing -->
+    <div class="logo-kanan">
+        <div class="bulat-kuning"></div>
+        <span href="index.html">PMII Makassar</span>
+        <button class="logout-header-button" id="logout-btn" onclick="logoutUser()" style="display: none;">Logout</button>
+    </div>
+</div>
+
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar-dots">
+    <div class="sidebar-dot" id="dot-beranda"></div>    
+    <div class="sidebar-dot" id="dot-tentang"></div>
+    <div class="sidebar-dot" id="dot-kaderisasi"></div>
+    <div class="sidebar-dot" id="dot-persuratan"></div>
+    <div class="sidebar-dot" id="dot-berita"></div>
+    <div class="sidebar-dot" id="dot-galeri"></div>
+    <div class="sidebar-dot" id="dot-anggota"></div>
+    <div class="sidebar-dot" id="dot-ruang-diskusi" style="display: none;"></div>
+    <div class="sidebar-dot" id="dot-login-user"></div>
+    <div class="sidebar-dot" id="dot-login-admin"></div>
+    <div id="sidebar-dot" class="sidebar-dot" style="display: none;"></div> 
+</div>
+
+<div class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-item">Beranda</a>
+    <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
+    <a href="#" class="sidebar-item" id="menu-kaderisasi">Kaderisasi</a>
+    <a href="persuratan.html" class="sidebar-item" id="menu-persuratan">Persuratan</a>
+    <a href="berita.html" class="sidebar-item">Berita</a>
+    <a href="galeri.html" class="sidebar-item" id="menu-galeri">Galeri</a>
+    <a href="#" class="sidebar-item" id="menu-anggota">Anggota</a>
+    <a href="#" class="sidebar-item" id="menu-ruang-diskusi" id="obrolan" style="display: none;">Ruang Diskusi</a>
+    <a href="login.html" class="sidebar-item" id="menu-login-user">Login User</a>
+    <a href="admin_login.html   " class="sidebar-item">Login Admin</a>
+    <a href="admin_panel.html" class="sidebar-item" id="menu-admin-panel" style="display: none;">Admin Panel</a>
+</div>
+
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <div class="main-content" style="padding-top: 80px;">
+    <div id="beritaDetail" style="background:white; border-radius:8px; padding:20px;">
+  <h2 id="judul"></h2>
+  <img id="gambar" src="" alt="gambar" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:15px;" />
+  <p id="isi" style="margin-top:10px;"></p>
+
+  <!-- Admin Action -->
+  <div id="adminAction" style="margin-top: 20px; display: none;">
+    <button id="editBtn" style="margin-right:10px; padding:8px 16px;">📝 Edit</button>
+    <button id="deleteBtn" style="padding:8px 16px; background:red; color:white;">🗑️ Hapus</button>
+  </div>
+</div>
+  </div>
+  <script src="script.js"></script>
+  <script>
+    if (typeof berita !== 'undefined' && berita) {
+      document.getElementById('judul').textContent = berita.judul;
+      document.getElementById('gambar').src = berita.gambar;
+      document.getElementById('isi').textContent = berita.isi;
+    } else {
+      document.getElementById('beritaDetail').innerHTML = '<p>Berita tidak ditemukan.</p>';
+    }
+  </script>
+</html>

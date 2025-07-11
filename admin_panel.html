@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - PMII</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    main {
+      margin-left: 50px;
+      padding: 20px;
+      margin-top: 60px;
+    }
+
+    .admin-section {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .admin-section h1 {
+      color: #2563eb;
+      margin-bottom: 25px;
+      font-size: 24px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-item label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .setting-item input[type="checkbox"] {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .sidebar.active ~ main {
+      margin-left: 250px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div></div>
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="header-right">
+      <div class="bulat-kuning"></div>
+      <span class="header-text">PMII Makassar</span>
+      <button class="logout-header-button" id="logout-btn" onclick="logoutUser()" style="display: none;">Logout</button>
+    </div>
+  </div>
+
+  <!-- Sidebar dots -->
+  <div class="sidebar-dots">
+    <div class="sidebar-dot" id="dot-beranda"></div>    
+    <div class="sidebar-dot" id="dot-tentang"></div>
+    <div class="sidebar-dot" id="dot-kaderisasi"></div>
+    <div class="sidebar-dot" id="dot-persuratan"></div>
+    <div class="sidebar-dot" id="dot-berita"></div>
+    <div class="sidebar-dot" id="dot-galeri"></div>
+    <div class="sidebar-dot" id="dot-anggota"></div>
+    <div class="sidebar-dot" id="dot-ruang-diskusi" style="display: none;"></div>
+    <div class="sidebar-dot" id="dot-login-user"></div>
+    <div class="sidebar-dot" id="dot-login-admin"></div>
+    <div id="sidebar-dot" class="sidebar-dot" style="display: none;"></div> 
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-items">
+      <a href="index.html" class="sidebar-item">Beranda</a>
+      <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
+      <a href="#" class="sidebar-item" id="menu-kaderisasi">Kaderisasi</a>
+      <a href="persuratan.html" class="sidebar-item" id="menu-persuratan">Persuratan</a>
+      <a href="berita.html" class="sidebar-item">Berita</a>
+      <a href="#" class="sidebar-item" id="menu-galeri">Galeri</a>
+      <a href="#" class="sidebar-item" id="menu-anggota">Anggota</a>
+      <a href="#" class="sidebar-item" id="menu-ruang-diskusi" id="obrolan" style="display: none;">Ruang Diskusi</a>
+      <a href="login.html" class="sidebar-item" id="menu-login-user">Login User</a>
+      <a href="admin_login.html   " class="sidebar-item">Login Admin</a>
+      <a href="admin_panel.html" class="sidebar-item" id="menu-admin-panel" style="display: none;">Admin Panel</a>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Konten Admin Panel -->
+  <main>
+    <div class="admin-section">
+      <h1>Pengaturan Menu</h1>
+
+      <div class="setting-item">
+        <label for="toggle-login-user">Login User</label>
+        <input type="checkbox" id="toggle-login-user" />
+      </div>
+      <div class="setting-item">
+        <label for="toggle-ruang-diskusi">Ruang Diskusi</label>
+        <input type="checkbox" id="toggle-ruang-diskusi" />
+      </div>
+      <div class="setting-item">
+        <label for="toggle-galeri">Galeri</label>
+        <input type="checkbox" id="toggle-galeri" />
+      </div>
+      <div class="setting-item">
+        <label for="toggle-anggota">Anggota</label>
+        <input type="checkbox" id="toggle-anggota" />
+      </div>
+      <div class="setting-item">
+        <label for="toggle-persuratan">Persuratan</label>
+        <input type="checkbox" id="toggle-persuratan" />
+      </div>
+      <div class="setting-item">
+        <label for="toggle-kaderisasi">Kaderisasi</label>
+        <input type="checkbox" id="toggle-kaderisasi" />
+      </div>
+      <div class="setting-item">
+        <label for="toggle-tentang">Tentang PMII</label>
+        <input type="checkbox" id="toggle-tentang" />
+      </div>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+  
+    function logoutUser() {
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('isUser');
+      window.location.href = 'index.html';
+    }
+  
+    window.addEventListener('DOMContentLoaded', () => {
+      const isAdmin = localStorage.getItem('isAdmin');
+      const logoutBtn = document.getElementById('logout-btn');
+      if (isAdmin === 'true' && logoutBtn) logoutBtn.style.display = 'inline-block';
+  
+      const menuList = [
+        'login-user',
+        'ruang-diskusi',
+        'galeri',
+        'anggota',
+        'persuratan',
+        'kaderisasi',
+        'tentang'
+      ];
+  
+      menuList.forEach(menu => {
+        const checkbox = document.getElementById(`toggle-${menu}`);
+        const sidebarItem = document.getElementById(`menu-${menu}`);
+        const dotItem = document.getElementById(`dot-${menu}`);
+        const status = localStorage.getItem(`menu-${menu}`);
+  
+        // Set initial checkbox & sidebar + dot visibility
+        if (checkbox) checkbox.checked = status !== 'false';
+        if (sidebarItem) sidebarItem.style.display = (status === 'false') ? 'none' : 'block';
+        if (dotItem) dotItem.style.display = (status === 'false') ? 'none' : 'block';
+  
+        // Update on checkbox change
+        if (checkbox) {
+          checkbox.addEventListener('change', () => {
+            localStorage.setItem(`menu-${menu}`, checkbox.checked);
+            if (sidebarItem) sidebarItem.style.display = checkbox.checked ? 'block' : 'none';
+            if (dotItem) dotItem.style.display = checkbox.checked ? 'block' : 'none';
+          });
+        }
+      });
+    });
+  </script>
+  
+</body>
+</html>
