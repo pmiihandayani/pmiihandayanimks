@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   judulEl.textContent = berita.judul;
   gambarEl.src = berita.url;
-  isiEl.textContent = berita.isi;
+  isiEl.innerHTML = berita.isi.replace(/\n/g, '<br>');
 
   //  Admin action visibility
   if (isAdmin) {
