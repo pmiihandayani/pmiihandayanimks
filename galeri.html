@@ -149,6 +149,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fotoInput');
   const fileName = document.getElementById('fileFotoName');
   const grid = document.getElementById('galeriGrid');
+  const modal = document.getElementById('galeriModal');
+  const modalImg = document.getElementById('modalImg');
+  const modalNama = document.getElementById('modalNama');
+  const modalDownload = document.getElementById('modalDownload');
+  const modalClose = document.getElementById('modalClose');
 
   if (isAdmin) form.style.display = 'block';
 
@@ -202,17 +207,28 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.innerHTML = '';
     list.forEach(f => {
       const div = document.createElement('div');
-      div.className = 'galeri-item';
-      div.innerHTML = `
+      div.className='galeri-item';
+      div.innerHTML=`
         <img src="${f.url}" alt="${f.nama}" />
         <div class="galeri-caption">
           <span>${f.nama}</span>
-          ${isAdmin ? `<button onclick="hapusFoto(${f.id}, '${f.path}')">🗑️</button>` : ''}
-        </div>`;
+          ${isAdmin?<button onclick="hapusFoto(${f.id},'${f.path}')">🗑️</button> : ''}
+        </div>
+        <div class="galeri-meta">${new Date(f.uploaded_at).toLocaleDateString('id-ID', {
+          day:'numeric', month:'long', year:'numeric'
+        })}</div>`;
+      div.addEventListener('click', () => openModal(f));
       grid.appendChild(div);
     });
   }
-
+  function openModal(f) {
+    modalImg.src = f.url;
+    modalNama.textContent = f.nama;
+    modalDownload.href = f.url;
+    modal.style.display = 'flex';
+  }
+  modalClose.addEventListener('click', () => modal.style.display='none');
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display='none'; });
   window.hapusFoto = async (id, path) => {
     if (!confirm('Yakin hapus foto ini?')) return;
 
