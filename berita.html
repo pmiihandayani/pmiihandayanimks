@@ -72,7 +72,8 @@
   </div>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase = createClient('https://ywjqyxtfwfkhlszjnbfw.supabase.co', 'YOUR_ANON_KEY');
+    const supabase = createClient('https://ywjqyxtfwfkhlszjnbfw.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw');
 
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
     const form = document.getElementById('beritaForm');
