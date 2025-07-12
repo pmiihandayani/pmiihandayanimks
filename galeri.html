@@ -102,11 +102,7 @@
 
   <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     
-<div class="main-content">
-    <div class="welcome-section">
-      <h1 class="welcome-title">Galeri Foto Kegiatan</h1>
-
-      <form id="galeriForm" style="display: none; margin-bottom: 30px;">
+<form id="galeriForm" style="display: none; margin-bottom: 30px;">
         <input type="text" id="namaFoto" placeholder="Nama Foto"
           style="margin-bottom:10px;padding:10px;width:100%;border:1px solid #ccc;border-radius:6px;" />
         <div style="display:flex;gap:10px;align-items:center;">
@@ -120,17 +116,6 @@
       </form>
 
       <div class="galeri-grid" id="galeriGrid"></div>
-        <div class="modal" id="galeriModal">
-          <div class="modal-content">
-          <button class="modal-close" id="modalClose">&times;</button>
-          <img id="modalImg" src="" alt="Preview Foto" />
-          <div class="modal-footer">
-            <span id="modalNama"></span>
-            <a id="modalDownload" href="#" download>Download</a>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
   <script src="script.js"></script>
