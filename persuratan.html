@@ -90,86 +90,90 @@
   </div>
 
   <script src="script.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('uploadForm');
-      const input = document.getElementById('suratInput');
-      const judulInput = document.getElementById('namaSurat');
-      const list = document.getElementById('daftarSurat');
-      const fileNameSpan = document.getElementById('fileName');
-      const isAdmin = localStorage.getItem('isAdmin') === 'true';
-      const isUser = localStorage.getItem('isUser') === 'true';
-    
-      function renderSuratList() {
-        const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
-        list.innerHTML = '';
-        surat.forEach((obj, i) => {
-          const li = document.createElement('li');
-          li.style.marginBottom = '10px';
-          li.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px 15px; border-radius:8px;">
-              <span>📄 ${obj.nama}</span>
-              <div>
-                <a href="${obj.url}" download>
-                  <button style="margin-right:10px; background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold;">Download</button>
-                </a>
-                ${isAdmin ? `<button onclick="hapusSurat(${i})" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hapus</button>` : ''}
-              </div>
-            </div>`;
-          list.appendChild(li);
-        });
-      }
-    
-      window.hapusSurat = (i) => {
-        const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
-        surat.splice(i, 1);
-        localStorage.setItem('suratList', JSON.stringify(surat));
-        renderSuratList();
-      };
-    
-      if (!(isAdmin || isUser)) form.style.display = 'none';
-    
-      input.addEventListener('change', () => {
-        fileNameSpan.textContent = input.files[0]?.name || 'Belum ada file';
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+  const SUPA_URL = 'https://ywjqyxtfwfkhlszjnbfw.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw';
+  const supabase = createClient(SUPA_URL, SUPA_KEY);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('uploadForm');
+    const input = document.getElementById('suratInput');
+    const judulInput = document.getElementById('namaSurat');
+    const list = document.getElementById('daftarSurat');
+    const fileNameSpan = document.getElementById('fileName');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const isUser = localStorage.getItem('isUser') === 'true';
+
+    function renderSuratList() {
+      const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+      list.innerHTML = '';
+      surat.forEach((obj, i) => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px 15px; border-radius:8px;">
+            <span>📄 ${obj.nama}</span>
+            <div>
+              <a href="${obj.url}" download>
+                <button style="margin-right:10px; background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold;">Download</button>
+              </a>
+              ${isAdmin ? `<button onclick="hapusSurat(${i})" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hapus</button>` : ''}
+            </div>
+          </div>`;
+        list.appendChild(li);
       });
-    
-      form.addEventListener('submit', async e => {
-        e.preventDefault();
-        const file = input.files[0];
-        const nama = judulInput.value.trim();
-        if (!file || !nama) return alert('Isi nama & pilih file!');
-        const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const res = await fetch('https://script.google.com/macros/s/AKfycbyOQWy30dUhcxUB5DqLF1OVIxZpxl8iamNyzipvwrbG2GZ1wsgfv9vekmP3WLo519O0XA/exec', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({
-                namaSurat: nama,
-                fileBase64: reader.result,
-                mimeType: file.type
-              })
-            });
-            const data = await res.json();
-            if (data.status === 'success') {
-              const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
-              surat.unshift({ nama, url: data.url });
-              localStorage.setItem('suratList', JSON.stringify(surat));
-              renderSuratList();
-              judulInput.value = '';
-              input.value = '';
-              fileNameSpan.textContent = 'Belum ada file';
-            } else alert('Upload gagal: ' + data.message);
-          } catch(err) {
-            alert('Kesalahan jaringan: ' + err.message);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    
+    }
+
+    window.hapusSurat = (i) => {
+      const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+      surat.splice(i, 1);
+      localStorage.setItem('suratList', JSON.stringify(surat));
       renderSuratList();
+    };
+
+    if (!(isAdmin || isUser)) form.style.display = 'none';
+
+    input.addEventListener('change', () => {
+      fileNameSpan.textContent = input.files[0]?.name || 'Belum ada file';
     });
-    </script>
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const file = input.files[0];
+      const nama = judulInput.value.trim();
+      if (!file || !nama) return alert('Isi nama & pilih file!');
+
+      const path = `surat/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase
+        .storage
+        .from('surat')
+        .upload(path, file);
+
+      if (uploadError) return alert('Upload gagal: ' + uploadError.message);
+
+      const { data: urlData, error: urlError } = supabase
+        .storage
+        .from('surat')
+        .getPublicUrl(path);
+
+      if (urlError || !urlData) return alert('Gagal ambil URL download!');
+
+      const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+      surat.unshift({ nama, url: urlData.publicUrl });
+      localStorage.setItem('suratList', JSON.stringify(surat));
+
+      renderSuratList();
+      judulInput.value = '';
+      input.value = '';
+      fileNameSpan.textContent = 'Belum ada file';
+    });
+
+    renderSuratList();
+  });
+</script>
+
     
 </body>
 </html>
