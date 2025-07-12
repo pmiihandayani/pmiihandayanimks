@@ -1,3 +1,9 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
+);
 // Toggle Sidebar
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -69,12 +75,17 @@ function userLogin(e) {
 // Berita di halaman index.html (home)
 const beritaGrid = document.getElementById('homeBeritaGrid');
 
-function renderHomeBerita() {
-  const list = JSON.parse(localStorage.getItem('beritaList') || '[]');
-  const recent = list.slice(0,4);
-  beritaGrid.innerHTML = '';
+async function renderHomeBerita() {
+  const { data: list, error } = await supabase
+    .from('berita')
+    .select('*')
+    .order('uploaded_at', { ascending: false })
+    .limit(4);
 
-  recent.forEach(berita => {
+  if (error) return console.error('Gagal ambil berita:', error.message);
+
+  beritaGrid.innerHTML = '';
+  list.forEach(berita => {
     const link = document.createElement('a');
     link.href = `berita_detail.html?id=${berita.id}`;
     link.style.textDecoration = 'none';
@@ -83,7 +94,7 @@ function renderHomeBerita() {
     const card = document.createElement('div');
     card.className = 'news-card';
     card.innerHTML = `
-      <img src="${berita.gambar}" class="news-image" style="height:120px;object-fit:cover;" />
+      <img src="${berita.url}" class="news-image" style="height:120px;object-fit:cover;" />
       <div class="news-footer">
         <div style="font-weight:bold;">${berita.judul}</div>
         <div style="font-size:13px;">${berita.deskripsi}</div>
