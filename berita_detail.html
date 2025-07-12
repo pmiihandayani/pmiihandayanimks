@@ -61,8 +61,71 @@
 </div>
   </div>
   <script src="script.js"></script>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detail Berita</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header">
+    <div></div> <!-- Empty div for spacing -->
+    <div class="logo-kanan">
+        <div class="bulat-kuning"></div>
+        <span href="index.html">PMII Makassar</span>
+        <button class="logout-header-button" id="logout-btn" onclick="logoutUser()" style="display: none;">Logout</button>
+    </div>
+</div>
+
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar-icons">
+        <img src="icons/icon-beranda.png" class="sidebar-icon" id="dot-beranda" />
+        <img src="icons/icon-tentang.png" class="sidebar-icon" id="dot-tentang" />
+        <img src="icons/icon-kaderisasi.png" class="sidebar-icon" id="dot-kaderisasi" />
+        <img src="icons/icon-persuratan.png" class="sidebar-icon" id="dot-persuratan" />
+        <img src="icons/icon-berita.png" class="sidebar-icon" id="dot-berita" />
+        <img src="icons/icon-galeri.png" class="sidebar-icon" id="dot-galeri" />
+        <img src="icons/icon-anggota.png" class="sidebar-icon" id="dot-anggota" />
+        <img src="icons/icon-diskusi.png" class="sidebar-icon" id="dot-ruang-diskusi" style="display: none;" />
+        <img src="icons/icon-user.png" class="sidebar-icon" id="dot-login-user" />
+        <img src="icons/icon-admin.png" class="sidebar-icon" id="dot-login-admin" />
+        <img src="icons/icon-admin-panel.png" class="sidebar-icon" id="sidebar-dot" style="display: none;" />
+    </div>
+    <div class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-item">Beranda</a>
+        <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
+        <a href="#" class="sidebar-item" id="menu-kaderisasi">Kaderisasi</a>
+        <a href="persuratan.html" class="sidebar-item" id="menu-persuratan">Persuratan</a>
+        <a href="berita.html" class="sidebar-item">Berita</a>
+        <a href="galeri.html" class="sidebar-item" id="menu-galeri">Galeri</a>
+        <a href="#" class="sidebar-item" id="menu-anggota">Anggota</a>
+        <a href="#" class="sidebar-item" id="menu-ruang-diskusi" id="obrolan" style="display: none;">Ruang Diskusi</a>
+        <a href="login.html" class="sidebar-item" id="menu-login-user">Login User</a>
+        <a href="admin_login.html   " class="sidebar-item">Login Admin</a>
+        <a href="admin_panel.html" class="sidebar-item" id="menu-admin-panel" style="display: none;">Admin Panel</a>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <div class="main-content" style="padding-top: 80px;">
+    <div id="beritaDetail" style="background:white; border-radius:8px; padding:20px;">
+  <h2 id="judul"></h2>
+  <img id="gambar" src="" alt="gambar" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:15px;" />
+  <p id="isi" style="margin-top:10px;"></p>
+
+  <!-- Admin Action -->
+  <div id="adminAction" style="margin-top: 20px; display: none;">
+    <button id="editBtn" style="margin-right:10px; padding:8px 16px;">📝 Edit</button>
+    <button id="deleteBtn" style="padding:8px 16px; background:red; color:white;">🗑️ Hapus</button>
+  </div>
+</div>
+  </div>
+  <script src="script.js"></script>
 <script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const supabase = createClient(
   'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
@@ -71,10 +134,13 @@ const supabase = createClient(
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+
   const judulEl = document.getElementById('judul');
   const gambarEl = document.getElementById('gambar');
   const isiEl = document.getElementById('isi');
   const wrapper = document.getElementById('beritaDetail');
+  const adminPanel = document.getElementById('adminAction');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
   if (!id) {
     wrapper.innerHTML = '<p>ID berita tidak ditemukan.</p>';
@@ -95,7 +161,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   judulEl.textContent = berita.judul;
   gambarEl.src = berita.url;
   isiEl.textContent = berita.isi;
+
+  //  Admin action visibility
+  if (isAdmin) {
+    adminPanel.style.display = 'block';
+
+    document.getElementById('deleteBtn').onclick = async () => {
+      const ok = confirm('Yakin ingin menghapus berita ini?');
+      if (!ok) return;
+
+      const { error: err1 } = await supabase.storage.from('berita').remove([berita.path]);
+      if (err1) return alert('Gagal hapus gambar: ' + err1.message);
+
+      const { error: err2 } = await supabase.from('berita').delete().eq('id', berita.id);
+      if (err2) return alert('Gagal hapus berita: ' + err2.message);
+
+      alert('Berhasil dihapus!');
+      window.location.href = 'berita.html';
+    };
+
+    document.getElementById('editBtn').onclick = () => {
+      alert('✍️ Fitur edit masih dalam pengembangan!');
+    };
+  }
 });
 </script>
+
+
+</html>
+
+
 
 </html>
