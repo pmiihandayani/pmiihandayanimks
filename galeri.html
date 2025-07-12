@@ -139,7 +139,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const supabase = createClient(
   'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
-  'YOUR_ANON_KEY'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
 );
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -149,26 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fotoInput');
   const fileName = document.getElementById('fileFotoName');
   const grid = document.getElementById('galeriGrid');
-
-  // Modal elements
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.style.display = 'none';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <button class="modal-close" id="modalClose">&times;</button>
-      <img id="modalImg" src="" alt="Preview Foto" />
-      <div class="modal-footer">
-        <span id="modalNama"></span>
-        <a id="modalDownload" href="#" download>Download</a>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-
-  const modalImg = modal.querySelector('#modalImg');
-  const modalNama = modal.querySelector('#modalNama');
-  const modalDownload = modal.querySelector('#modalDownload');
-  const modalClose = modal.querySelector('#modalClose');
 
   if (isAdmin) form.style.display = 'block';
 
@@ -185,11 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const safeName = file.name.replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
     const path = `${Date.now()}_${safeName}`;
 
+    // Upload ke Supabase Storage
     const { error: uploadError } = await supabase
       .storage
       .from('galeri')
       .upload(path, file, { cacheControl: '3600', upsert: false });
-
     if (uploadError) return alert('Upload gagal: ' + uploadError.message);
 
     const { data: urlData } = supabase
@@ -199,10 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const publicUrl = urlData.publicUrl;
 
+    // Simpan metadata ke DB
     const { error: dbError } = await supabase
       .from('galeri_list')
       .insert([{ nama, path, url: publicUrl }]);
-
     if (dbError) return alert('Gagal simpan ke DB: ' + dbError.message);
 
     namaInput.value = '';
@@ -228,28 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="galeri-caption">
           <span>${f.nama}</span>
           ${isAdmin ? `<button onclick="hapusFoto(${f.id}, '${f.path}')">🗑️</button>` : ''}
-        </div>
-        <div class="galeri-meta">
-          ${new Date(f.uploaded_at).toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'long', year: 'numeric'
-          })}
         </div>`;
-      div.addEventListener('click', () => openModal(f));
       grid.appendChild(div);
     });
   }
-
-  function openModal(f) {
-    modalImg.src = f.url;
-    modalNama.textContent = f.nama;
-    modalDownload.href = f.url;
-    modal.style.display = 'flex';
-  }
-
-  modalClose.addEventListener('click', () => modal.style.display = 'none');
-  modal.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
-  });
 
   window.hapusFoto = async (id, path) => {
     if (!confirm('Yakin hapus foto ini?')) return;
@@ -258,13 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
       .storage
       .from('galeri')
       .remove([path]);
-    if (delError) return alert("Gagal hapus dari storage: " + delError.message);
+    if (delError) return alert('Gagal hapus dari Storage: ' + delError.message);
 
     const { error: dbError } = await supabase
       .from('galeri_list')
       .delete()
       .eq('id', id);
-    if (dbError) return alert("Gagal hapus dari DB: " + dbError.message);
+    if (dbError) return alert('Gagal hapus dari DB: ' + dbError.message);
 
     renderGaleriList();
   };
