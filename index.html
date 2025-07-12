@@ -59,6 +59,49 @@
         <h1 class="news-title">Berita Terkini</h1>
         <div class="news-grid" id="homeBeritaGrid"></div>
     </div>
-    <script src="script.js" type="module"></script>
+<script src="script.js"></script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+);
+
+const beritaGrid = document.getElementById('homeBeritaGrid');
+
+async function renderHomeBerita() {
+  const { data: list, error } = await supabase
+    .from('berita')
+    .select('*')
+    .order('uploaded_at', { ascending: false })
+    .limit(4); // ambil 4 terbaru
+
+  if (error) return console.error('Gagal ambil berita:', error.message);
+
+  beritaGrid.innerHTML = '';
+
+  list.forEach(berita => {
+    const link = document.createElement('a');
+    link.href = `berita_detail.html?id=${berita.id}`;
+    link.style.textDecoration = 'none';
+    link.style.color = 'inherit';
+
+    const card = document.createElement('div');
+    card.className = 'news-card';
+    card.innerHTML = `
+      <img src="${berita.url}" class="news-image" style="height:120px;object-fit:cover;" />
+      <div class="news-footer">
+        <div style="font-weight:bold;">${berita.judul}</div>
+        <div style="font-size:13px;">${berita.deskripsi}</div>
+      </div>`;
+    link.appendChild(card);
+    beritaGrid.appendChild(link);
+  });
+}
+
+if (beritaGrid) renderHomeBerita();
+</script>
+
 </body>
 </html>
