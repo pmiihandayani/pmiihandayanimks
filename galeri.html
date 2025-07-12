@@ -110,10 +110,11 @@
 <form id="galeriForm" style="display: none; margin-bottom: 20px;">
   <input type="text" id="namaFoto" placeholder="Nama Foto" required />
   <div style="display:flex; gap:10px; align-items:center;">
-    <div id="dropZone" style="flex:1; padding:20px; border:2px dashed #ccc; border-radius:8px; text-align:center; cursor:pointer;">
-      Seret atau klik untuk pilih foto
-      <input type="file" id="fotoInput" accept="image/*" style="display:none;" />
-    </div>
+    <label for="fotoInput" style="padding: 10px 20px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; cursor: pointer;">
+      📷 Pilih Foto
+    </label>
+    <input type="file" id="fotoInput" accept="image/*" style="display:none;" />
+
     <select id="kategoriFoto">
       <option value="Kegiatan">Kegiatan</option>
       <option value="Seminar">Seminar</option>
