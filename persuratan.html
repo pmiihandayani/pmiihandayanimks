@@ -107,10 +107,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
   const isUser = localStorage.getItem('isUser') === 'true';
 
-  function renderSuratList() {
-    const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
+  async function fetchSuratList() {
+    const { data, error } = await supabase
+      .from('surat_list')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
+    if (error) {
+      alert("Gagal ambil daftar surat: " + error.message);
+      return [];
+    }
+    return data;
+  }
+
+  async function renderSuratList() {
+    const suratList = await fetchSuratList();
     list.innerHTML = '';
-    surat.forEach((obj, i) => {
+    suratList.forEach((obj, i) => {
       const li = document.createElement('li');
       li.style.marginBottom = '10px';
       li.innerHTML = `
@@ -120,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <a href="${obj.url}" download>
               <button style="margin-right:10px; background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold;">Download</button>
             </a>
-            ${isAdmin ? `<button onclick="hapusSurat(${i})" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hapus</button>` : ''}
+            ${isAdmin ? `<button onclick="hapusSurat(${obj.id}, '${obj.path}')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Hapus</button>` : ''}
           </div>
         </div>`;
       list.appendChild(li);
@@ -141,54 +153,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const safeName = file.name.replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
     const path = `${Date.now()}_${safeName}`;
+
     const { error: uploadError } = await supabase
       .storage
       .from('surat')
-      .upload(path, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
+      .upload(path, file, { cacheControl: '3600', upsert: false });
     if (uploadError) return alert('Upload gagal: ' + uploadError.message);
 
     const { data: urlData } = supabase
       .storage
       .from('surat')
       .getPublicUrl(path);
-
     const publicUrl = urlData.publicUrl;
 
-    const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
-    surat.unshift({ nama, url: publicUrl });
-    localStorage.setItem('suratList', JSON.stringify(surat));
+    const { error: dbError } = await supabase
+      .from('surat_list')
+      .insert([{ nama, path, url: publicUrl }]);
+    if (dbError) return alert('Gagal simpan ke DB: ' + dbError.message);
 
-    renderSuratList();
     judulInput.value = '';
     input.value = '';
     fileNameSpan.textContent = 'Belum ada file';
+    renderSuratList();
   });
+
+  window.hapusSurat = async (id, path) => {
+    if (!confirm("Yakin ingin menghapus dokumen ini?")) return;
+
+    const { error: delError } = await supabase
+      .storage
+      .from('surat')
+      .remove([path]);
+
+    if (delError) return alert("Gagal hapus file dari storage: " + delError.message);
+
+    const { error: dbDel } = await supabase
+      .from('surat_list')
+      .delete()
+      .eq('id', id);
+
+    if (dbDel) return alert("Gagal hapus data dari DB: " + dbDel.message);
+
+    renderSuratList();
+  };
 
   renderSuratList();
 });
-
-  window.hapusSurat = async (i) => {
-  const surat = JSON.parse(localStorage.getItem('suratList') || '[]');
-  const removed = surat.splice(i, 1)[0];
-  const filePath = removed.url.split('/').pop();
-
-  const { error } = await supabase
-    .storage
-    .from('surat')
-    .remove([filePath]);
-
-  if (error) alert("Gagal hapus file dari Supabase: " + error.message);
-  localStorage.setItem('suratList', JSON.stringify(surat));
-  renderSuratList();
-}
 </script>
-
-
-
-    
+   
 </body>
 </html>
