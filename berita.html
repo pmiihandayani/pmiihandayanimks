@@ -126,6 +126,7 @@ async function renderBerita() {
 
   grid.innerHTML = '';
   list.forEach(berita => {
+    const wrapper = document.createElement('div');
     const link = document.createElement('a');
     link.href = `berita_detail.html?id=${berita.id}`;
     link.style.textDecoration = 'none';
@@ -138,24 +139,34 @@ async function renderBerita() {
       <div class="news-footer">
         <div style="font-weight:bold;">${berita.judul}</div>
         <div style="font-size: 13px; color: #eee;">${berita.deskripsi}</div>
-        ${isAdmin ? `<button onclick="hapusBerita(${berita.id}, '${berita.path}')">🗑️ Hapus</button>` : ''}
       </div>
     `;
     link.appendChild(card);
-    grid.appendChild(link);
-  });
+    wrapper.appendChild(link);
+
+    if (isAdmin) {
+      const btn = document.createElement('button');
+      btn.textContent = '🗑️ Hapus';
+      btn.style.cssText = 'margin-top:8px; background:red; color:white; padding:6px 10px; border:none; border-radius:4px;';
+      btn.onclick = async (e) => {
+        e.preventDefault();
+        const ok = confirm('Yakin ingin hapus berita ini?');
+        if (!ok) return;
+
+        const { error: d1 } = await supabase.storage.from('berita').remove([berita.path]);
+        if (d1) return alert('Gagal hapus gambar: ' + d1.message);
+
+        const { error: d2 } = await supabase.from('berita').delete().eq('id', berita.id);
+        if (d2) return alert('Gagal hapus data: ' + d2.message);
+
+        renderBerita();
+  };
+  wrapper.appendChild(btn);
 }
 
-window.hapusBerita = async (id, path) => {
-  if (!confirm('Yakin ingin hapus berita ini?')) return;
-  const { error: d1 } = await supabase.storage.from('berita').remove([path]);
-  if (d1) return alert('Gagal hapus gambar: ' + d1.message);
-  const { error: d2 } = await supabase.from('berita').delete().eq('id', id);
-  if (d2) return alert('Gagal hapus data berita: ' + d2.message);
-  renderBerita();
-};
-
-renderBerita();
+grid.appendChild(wrapper);
+  });
+}
 </script>
 
   
