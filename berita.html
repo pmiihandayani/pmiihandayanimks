@@ -70,80 +70,76 @@
       </div>
     </div>
   </div>
-  <script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient('https://ywjqyxtfwfkhlszjnbfw.supabase.co', 'YOUR_ANON_KEY');
+
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
     const form = document.getElementById('beritaForm');
     const grid = document.getElementById('beritaGrid');
-  
-    if (isAdmin && form) form.style.display = 'block';
-  
-    form?.addEventListener('submit', async function (e) {
+    const fileInput = document.getElementById('gambar');
+    const fileNameSpan = document.getElementById('fileName');
+
+    if (isAdmin) form.style.display = 'block';
+
+    fileInput.addEventListener('change', () => {
+      fileNameSpan.textContent = fileInput.files[0]?.name || 'Belum ada file';
+    });
+
+    form.addEventListener('submit', async e => {
       e.preventDefault();
       const judul = document.getElementById('judul').value.trim();
       const isi = document.getElementById('isi').value.trim();
-      const deskripsi = isi.substring(0, 100) + (isi.length > 100 ? '...' : '');
-      const gambarFile = document.getElementById('gambar').files[0];
-  
-      if (!judul || !isi || !gambarFile) return alert("Lengkapi semua kolom!");
-  
-      const reader = new FileReader();
-      reader.onload = async function () {
-        const newEntry = {
-          id: Date.now().toString(),
-          judul,
-          deskripsi,
-          isi,
-          gambar: reader.result
-        };
-        // Simpan ke Google Sheets via Web App
-        try {
-          await fetch('https://script.google.com/macros/s/AKfycbx2zAWCq4zItTCkGpHtVLukcD7pBDSH9GOVWkbTt4XUdcKusU-xKrfCMFZCG8L_UAOl7A/exec', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newEntry)
-          });
-        } catch (err) {
-          console.error('Gagal simpan ke Web App:', err.message);
-        }
-  
-        form.reset();
-        renderBerita();
-      };
-      reader.readAsDataURL(gambarFile);
+      const file = fileInput.files[0];
+      if (!judul || !isi || !file) return alert('Lengkapi semua kolom!');
+
+      const deskripsi = isi.substring(0,100) + (isi.length>100?'...':'');
+
+      const safeName = file.name.replace(/\s+/g,'_').replace(/[^\w.-]/g,'');
+      const path = `${Date.now()}_${safeName}`;
+
+      const { error: upErr } = await supabase.storage.from('berita').upload(path, file, { cacheControl:'3600', upsert:false });
+      if (upErr) return alert('Upload gagal: '+upErr.message);
+
+      const { data: urlData } = supabase.storage.from('berita').getPublicUrl(path);
+      const url = urlData.publicUrl;
+
+      const { error: dbErr } = await supabase.from('berita').insert([{ judul, isi, deskripsi, path, url }]);
+      if (dbErr) return alert('Gagal simpan ke DB: '+dbErr.message);
+
+      form.reset(); fileNameSpan.textContent = 'Belum ada file';
+      renderBerita();
     });
-  
-    function renderBerita() {
-      const list = JSON.parse(localStorage.getItem('beritaList') || '[]');
+
+    async function renderBerita() {
+      const { data:list, error } = await supabase.from('berita').select('*').order('uploaded_at', {ascending:false});
+      if (error) return alert('Gagal ambil data: '+error.message);
+
       grid.innerHTML = '';
-  
-      list.forEach(berita => {
-        const link = document.createElement('a');
-        link.href = `berita_detail.html?id=${berita.id}`;
-        link.style.textDecoration = 'none';
-        link.style.color = 'inherit';
-  
+      list.forEach(b => {
         const card = document.createElement('div');
         card.className = 'news-card';
         card.innerHTML = `
-          <img src="${berita.gambar}" class="news-image" style="height: 120px; object-fit: cover;" />
+          <img src="${b.url}" class="news-image" alt="${b.judul}">
           <div class="news-footer">
-            <div style="font-weight:bold;">${berita.judul}</div>
-            <div style="font-size: 13px; color: #eee;">${berita.deskripsi}</div>
-            ${isAdmin ? `<button onclick="event.preventDefault(); hapus('${berita.id}')" style="margin-top:8px; padding:4px 10px; font-size:12px; background:red; color:white; border:none; border-radius:4px;">Hapus</button>` : ''}
-          </div>
-        `;
-        link.appendChild(card);
-        grid.appendChild(link);
+            <h3>${b.judul}</h3>
+            <small>${new Date(b.uploaded_at).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</small>
+            <p>${b.deskripsi}</p>
+            ${isAdmin ? `<button onclick="hapusBerita(${b.id}, '${b.path}')">🗑️ Hapus</button>` : ''}
+          </div>`;
+        grid.appendChild(card);
       });
     }
-  
-    function hapus(id) {
-      const berita = JSON.parse(localStorage.getItem('beritaList') || '[]');
-      const filtered = berita.filter(item => item.id !== id);
-      localStorage.setItem('beritaList', JSON.stringify(filtered));
+
+    window.hapusBerita = async (id, path) => {
+      if (!confirm('Yakin ingin hapus berita ini?')) return;
+      const { error: d1 } = await supabase.storage.from('berita').remove([path]);
+      if (d1) return alert('Gagal hapus gambar: '+d1.message);
+      const { error: d2 } = await supabase.from('berita').delete().eq('id', id);
+      if (d2) return alert('Gagal hapus data berita: '+d2.message);
       renderBerita();
-    }
-  
+    };
+
     renderBerita();
   </script>
   
