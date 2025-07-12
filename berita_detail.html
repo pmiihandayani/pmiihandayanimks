@@ -80,42 +80,6 @@
 </div>
 
     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-
-<div class="sidebar-icons">
-        <img src="icons/icon-beranda.png" class="sidebar-icon" id="dot-beranda" />
-        <img src="icons/icon-tentang.png" class="sidebar-icon" id="dot-tentang" />
-        <img src="icons/icon-kaderisasi.png" class="sidebar-icon" id="dot-kaderisasi" />
-        <img src="icons/icon-persuratan.png" class="sidebar-icon" id="dot-persuratan" />
-        <img src="icons/icon-berita.png" class="sidebar-icon" id="dot-berita" />
-        <img src="icons/icon-galeri.png" class="sidebar-icon" id="dot-galeri" />
-        <img src="icons/icon-anggota.png" class="sidebar-icon" id="dot-anggota" />
-        <img src="icons/icon-diskusi.png" class="sidebar-icon" id="dot-ruang-diskusi" style="display: none;" />
-        <img src="icons/icon-user.png" class="sidebar-icon" id="dot-login-user" />
-        <img src="icons/icon-admin.png" class="sidebar-icon" id="dot-login-admin" />
-        <img src="icons/icon-admin-panel.png" class="sidebar-icon" id="sidebar-dot" style="display: none;" />
-    </div>
-    <div class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-item">Beranda</a>
-        <a href="#" class="sidebar-item" id="menu-tentang">Tentang PMII</a>
-        <a href="#" class="sidebar-item" id="menu-kaderisasi">Kaderisasi</a>
-        <a href="persuratan.html" class="sidebar-item" id="menu-persuratan">Persuratan</a>
-        <a href="berita.html" class="sidebar-item">Berita</a>
-        <a href="galeri.html" class="sidebar-item" id="menu-galeri">Galeri</a>
-        <a href="#" class="sidebar-item" id="menu-anggota">Anggota</a>
-        <a href="#" class="sidebar-item" id="menu-ruang-diskusi" id="obrolan" style="display: none;">Ruang Diskusi</a>
-        <a href="login.html" class="sidebar-item" id="menu-login-user">Login User</a>
-        <a href="admin_login.html   " class="sidebar-item">Login Admin</a>
-        <a href="admin_panel.html" class="sidebar-item" id="menu-admin-panel" style="display: none;">Admin Panel</a>
-    </div>
-
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-  <div class="main-content" style="padding-top: 80px;">
-    <div id="beritaDetail" style="background:white; border-radius:8px; padding:20px;">
-  <h2 id="judul"></h2>
-  <img id="gambar" src="" alt="gambar" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:15px;" />
-  <p id="isi" style="margin-top:10px;"></p>
-
   <!-- Admin Action -->
   <div id="adminAction" style="margin-top: 20px; display: none;">
     <button id="editBtn" style="margin-right:10px; padding:8px 16px;">📝 Edit</button>
@@ -166,7 +130,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isAdmin) {
     adminPanel.style.display = 'block';
 
-    document.getElementById('deleteBtn').onclick = async () => {
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+
+    editBtn.onclick = () => {
+      judulEl.innerHTML = `<input id="editJudul" value="${berita.judul}" style="width:100%; padding:10px; font-size:20px;" />`;
+      isiEl.innerHTML = `<textarea id="editIsi" style="width:100%; padding:10px; font-size:16px; height:200px;">${berita.isi}</textarea>`;
+      editBtn.textContent = "💾 Simpan";
+
+      editBtn.onclick = async () => {
+        const newJudul = document.getElementById('editJudul').value.trim();
+        const newIsi = document.getElementById('editIsi').value.trim();
+        const newDeskripsi = newIsi.substring(0, 100) + (newIsi.length > 100 ? '...' : '');
+
+        if (!newJudul || !newIsi) return alert("Isi semua kolom!");
+
+        const { error: updateError } = await supabase
+          .from('berita')
+          .update({ judul: newJudul, isi: newIsi, deskripsi: newDeskripsi })
+          .eq('id', berita.id);
+
+        if (updateError) return alert("Gagal update berita: " + updateError.message);
+
+        alert("✅ Berita berhasil diperbarui!");
+        location.reload();
+      };
+    };
+
+    deleteBtn.onclick = async () => {
       const ok = confirm('Yakin ingin menghapus berita ini?');
       if (!ok) return;
 
@@ -179,17 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       alert('Berhasil dihapus!');
       window.location.href = 'berita.html';
     };
-
-    document.getElementById('editBtn').onclick = () => {
-      alert('✍️ Fitur edit masih dalam pengembangan!');
-    };
   }
 });
 </script>
-
-
-</html>
-
-
-
 </html>
