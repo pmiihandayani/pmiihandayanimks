@@ -70,85 +70,94 @@
       </div>
     </div>
   </div>
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase = createClient(
-      'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
-    );
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabase = createClient(
+  'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+);
 
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    const form = document.getElementById('beritaForm');
-    const grid = document.getElementById('beritaGrid');
-    const fileInput = document.getElementById('gambar');
-    const fileNameSpan = document.getElementById('fileName');
+const isAdmin = localStorage.getItem('isAdmin') === 'true';
+const form = document.getElementById('beritaForm');
+const grid = document.getElementById('beritaGrid');
+const fileInput = document.getElementById('gambar');
+const fileNameSpan = document.getElementById('fileName');
 
-    if (isAdmin) form.style.display = 'block';
+if (isAdmin) form.style.display = 'block';
 
-    fileInput.addEventListener('change', () => {
-      fileNameSpan.textContent = fileInput.files[0]?.name || 'Belum ada file';
-    });
+fileInput.addEventListener('change', () => {
+  fileNameSpan.textContent = fileInput.files[0]?.name || 'Belum ada file';
+});
 
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const judul = document.getElementById('judul').value.trim();
-      const isi = document.getElementById('isi').value.trim();
-      const file = fileInput.files[0];
-      if (!judul || !isi || !file) return alert('Lengkapi semua kolom!');
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const judul = document.getElementById('judul').value.trim();
+  const isi = document.getElementById('isi').value.trim();
+  const file = fileInput.files[0];
+  if (!judul || !isi || !file) return alert('Lengkapi semua kolom!');
 
-      const deskripsi = isi.substring(0,100) + (isi.length>100?'...':'');
+  const deskripsi = isi.substring(0, 100) + (isi.length > 100 ? '...' : '');
+  const safeName = file.name.replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
+  const path = `${Date.now()}_${safeName}`;
 
-      const safeName = file.name.replace(/\s+/g,'_').replace(/[^\w.-]/g,'');
-      const path = `${Date.now()}_${safeName}`;
+  const { error: upErr } = await supabase
+    .storage.from('berita')
+    .upload(path, file, { cacheControl: '3600', upsert: false });
+  if (upErr) return alert('Upload gagal: ' + upErr.message);
 
-      const { error: upErr } = await supabase.storage.from('berita').upload(path, file, { cacheControl:'3600', upsert:false });
-      if (upErr) return alert('Upload gagal: '+upErr.message);
+  const { data: urlData } = supabase.storage.from('berita').getPublicUrl(path);
+  const url = urlData.publicUrl;
 
-      const { data: urlData } = supabase.storage.from('berita').getPublicUrl(path);
-      const url = urlData.publicUrl;
+  const { error: dbErr } = await supabase
+    .from('berita')
+    .insert([{ judul, isi, deskripsi, path, url }]);
+  if (dbErr) return alert('Gagal simpan ke DB: ' + dbErr.message);
 
-      const { error: dbErr } = await supabase.from('berita').insert([{ judul, isi, deskripsi, path, url }]);
-      if (dbErr) return alert('Gagal simpan ke DB: '+dbErr.message);
+  form.reset(); fileNameSpan.textContent = 'Belum ada file';
+  renderBerita();
+});
 
-      form.reset(); fileNameSpan.textContent = 'Belum ada file';
-      renderBerita();
-    });
+async function renderBerita() {
+  const { data: list, error } = await supabase
+    .from('berita')
+    .select('*')
+    .order('uploaded_at', { ascending: false });
+  if (error) return alert('Gagal ambil data: ' + error.message);
 
-    async function renderBerita() {
-      const { data:list, error } = await supabase.from('berita').select('*').order('uploaded_at', {ascending:false});
-      if (error) return alert('Gagal ambil data: '+error.message);
+  grid.innerHTML = '';
+  list.forEach(berita => {
+    const link = document.createElement('a');
+    link.href = `berita_detail.html?id=${berita.id}`;
+    link.style.textDecoration = 'none';
+    link.style.color = 'inherit';
 
-      list.forEach(berita => {
-        const link = document.createElement('a');
-        link.href = `berita_detail.html?id=${berita.id}`;
-        link.style.textDecoration = 'none';
-        link.style.color = 'inherit';
+    const card = document.createElement('div');
+    card.className = 'news-card';
+    card.innerHTML = `
+      <img src="${berita.url}" class="news-image" />
+      <div class="news-footer">
+        <div style="font-weight:bold;">${berita.judul}</div>
+        <div style="font-size: 13px; color: #eee;">${berita.deskripsi}</div>
+        ${isAdmin ? `<button onclick="hapusBerita(${berita.id}, '${berita.path}')">🗑️ Hapus</button>` : ''}
+      </div>
+    `;
+    link.appendChild(card);
+    grid.appendChild(link);
+  });
+}
 
-        const card = document.createElement('div');
-        card.className = 'news-card';
-        card.innerHTML = `
-          <img src="${berita.url}" class="news-image" />
-          <div class="news-footer">
-            <div style="font-weight:bold;">${berita.judul}</div>
-            <div style="font-size: 13px; color: #eee;">${berita.deskripsi}</div>
-          </div>
-        `;
+window.hapusBerita = async (id, path) => {
+  if (!confirm('Yakin ingin hapus berita ini?')) return;
+  const { error: d1 } = await supabase.storage.from('berita').remove([path]);
+  if (d1) return alert('Gagal hapus gambar: ' + d1.message);
+  const { error: d2 } = await supabase.from('berita').delete().eq('id', id);
+  if (d2) return alert('Gagal hapus data berita: ' + d2.message);
+  renderBerita();
+};
 
-        link.appendChild(card);
-        grid.appendChild(link);
-    });
+renderBerita();
+</script>
 
-    window.hapusBerita = async (id, path) => {
-      if (!confirm('Yakin ingin hapus berita ini?')) return;
-      const { error: d1 } = await supabase.storage.from('berita').remove([path]);
-      if (d1) return alert('Gagal hapus gambar: '+d1.message);
-      const { error: d2 } = await supabase.from('berita').delete().eq('id', id);
-      if (d2) return alert('Gagal hapus data berita: '+d2.message);
-      renderBerita();
-    };
-
-    renderBerita();
-  </script>
   
 </body>
 </html>
