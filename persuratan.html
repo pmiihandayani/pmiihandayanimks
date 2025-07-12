@@ -152,6 +152,8 @@
         .storage
         .from('surat')
         .upload(path, file);
+              cacheControl: '3600',
+              upsert: false
 
       if (uploadError) return alert('Upload gagal: ' + uploadError.message);
 
