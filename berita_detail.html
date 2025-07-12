@@ -61,13 +61,41 @@
 </div>
   </div>
   <script src="script.js"></script>
-  <script>
-    if (typeof berita !== 'undefined' && berita) {
-      document.getElementById('judul').textContent = berita.judul;
-      document.getElementById('gambar').src = berita.gambar;
-      document.getElementById('isi').textContent = berita.isi;
-    } else {
-      document.getElementById('beritaDetail').innerHTML = '<p>Berita tidak ditemukan.</p>';
-    }
-  </script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+const supabase = createClient(
+  'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
+);
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const judulEl = document.getElementById('judul');
+  const gambarEl = document.getElementById('gambar');
+  const isiEl = document.getElementById('isi');
+  const wrapper = document.getElementById('beritaDetail');
+
+  if (!id) {
+    wrapper.innerHTML = '<p>ID berita tidak ditemukan.</p>';
+    return;
+  }
+
+  const { data: berita, error } = await supabase
+    .from('berita')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !berita) {
+    wrapper.innerHTML = '<p>Berita tidak ditemukan atau gagal dimuat.</p>';
+    return;
+  }
+
+  judulEl.textContent = berita.judul;
+  gambarEl.src = berita.url;
+  isiEl.textContent = berita.isi;
+});
+</script>
+
 </html>
