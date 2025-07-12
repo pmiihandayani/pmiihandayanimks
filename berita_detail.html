@@ -47,17 +47,25 @@
   </div>
 
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-  <!-- Admin Action -->
-<div id="adminAction" style="margin-top: 20px; display: none; display: flex; gap: 10px;">
-  <button id="editBtn"
-    style="padding:10px 20px; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
-    📝 Edit
-  </button>
-  <button id="deleteBtn"
-    style="padding:10px 20px; background:red; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
-    🗑️ Hapus
-  </button>
-</div>
+
+<div class="main-content" style="padding-top: 80px;">
+  <div id="beritaDetail" style="background:white; border-radius:8px; padding:20px;">
+    <h2 id="judul"></h2>
+    <img id="gambar" src="" alt="gambar" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:15px;" />
+    <p id="isi" style="margin-top:10px;"></p>
+    <!-- Admin Action -->
+    <div id="adminAction" style="margin-top: 20px; display: none; display: flex; gap: 10px;">
+      <button id="editBtn"
+        style="padding:10px 20px; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+        📝 Edit
+      </button>
+      <button id="deleteBtn"
+        style="padding:10px 20px; background:red; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+        🗑️ Hapus
+      </button>
+    </div>
+  </div>
+</div> 
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
