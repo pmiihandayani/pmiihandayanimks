@@ -96,7 +96,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const supabase = createClient(
   'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
-)
+);
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('uploadForm');
@@ -149,9 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const safeName = file.name.replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
     const path = `${Date.now()}_${safeName}`;
 
+    // ✅ UPLOAD via Supabase SDK - bukan fetch()
     const { error: uploadError } = await supabase
       .storage
-      .from('surat') // Bucket name
+      .from('surat')
       .upload(path, file, {
         cacheControl: '3600',
         upsert: false
@@ -179,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSuratList();
 });
 </script>
+
 
 
     
