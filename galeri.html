@@ -116,68 +116,106 @@
     </div>
   </div>
   <script src="script.js"></script>
-  <script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const isAdmin = localStorage.getItem('isAdmin') === 'true';
-      const form = document.getElementById('galeriForm');
-      const namaInput = document.getElementById('namaFoto');
-      const fileInput = document.getElementById('fotoInput');
-      const fileName = document.getElementById('fileFotoName');
-      const grid = document.getElementById('galeriGrid');
+const supabase = createClient(
+  'https://ywjqyxtfwfkhlszjnbfw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3anF5eHRmd2ZraGxzempuYmZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMTU4NTUsImV4cCI6MjA2Nzg5MTg1NX0.ddTr5T--9C3KHY4SHeBkn5mLPO2JOc7VT-uzIW5JiGw'
+);
 
-      if (isAdmin) form.style.display = 'block';
+document.addEventListener('DOMContentLoaded', () => {
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  const form = document.getElementById('galeriForm');
+  const namaInput = document.getElementById('namaFoto');
+  const fileInput = document.getElementById('fotoInput');
+  const fileName = document.getElementById('fileFotoName');
+  const grid = document.getElementById('galeriGrid');
 
-      fileInput.addEventListener('change', () => {
-        fileName.textContent = fileInput.files[0]?.name || 'Belum ada foto';
-      });
+  if (isAdmin) form.style.display = 'block';
 
-      form.addEventListener('submit', e => {
-        e.preventDefault();
-        const nama = namaInput.value.trim();
-        const file = fileInput.files[0];
-        if (!nama || !file) return alert('Isi nama & pilih foto');
+  fileInput.addEventListener('change', () => {
+    fileName.textContent = fileInput.files[0]?.name || 'Belum ada foto';
+  });
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          const list = JSON.parse(localStorage.getItem('galeriList') || '[]');
-          list.unshift({ id: Date.now(), nama, dataUrl: reader.result });
-          localStorage.setItem('galeriList', JSON.stringify(list));
-          namaInput.value = '';
-          fileInput.value = '';
-          fileName.textContent = 'Belum ada foto';
-          renderGaleri();
-        };
-        reader.readAsDataURL(file);
-      });
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const nama = namaInput.value.trim();
+    const file = fileInput.files[0];
+    if (!nama || !file) return alert('Isi nama & pilih foto');
 
-      window.hapusFoto = id => {
-        if (!confirm('Hapus foto ini?')) return;
-        const list = JSON.parse(localStorage.getItem('galeriList') || '[]');
-        const updated = list.filter(f => f.id !== id);
-        localStorage.setItem('galeriList', JSON.stringify(updated));
-        renderGaleri();
-      };
+    const safeName = file.name.replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
+    const path = `${Date.now()}_${safeName}`;
 
-      function renderGaleri() {
-        const list = JSON.parse(localStorage.getItem('galeriList') || '[]');
-        grid.innerHTML = '';
-        list.forEach(f => {
-          const item = document.createElement('div');
-          item.className = 'galeri-item';
-          item.innerHTML = `
-            <img src="${f.dataUrl}" alt="${f.nama}" />
-            <div class="galeri-caption">
-              <span>${f.nama}</span>
-              ${isAdmin ? `<button onclick="hapusFoto(${f.id})">🗑️</button>` : ''}
-            </div>
-          `;
-          grid.appendChild(item);
-        });
-      }
+    // Upload ke Supabase Storage
+    const { error: uploadError } = await supabase
+      .storage
+      .from('galeri')
+      .upload(path, file, { cacheControl: '3600', upsert: false });
+    if (uploadError) return alert('Upload gagal: ' + uploadError.message);
 
-      renderGaleri();
+    const { data: urlData } = supabase
+      .storage
+      .from('galeri')
+      .getPublicUrl(path);
+
+    const publicUrl = urlData.publicUrl;
+
+    // Simpan metadata ke DB
+    const { error: dbError } = await supabase
+      .from('galeri_list')
+      .insert([{ nama, path, url: publicUrl }]);
+    if (dbError) return alert('Gagal simpan ke DB: ' + dbError.message);
+
+    namaInput.value = '';
+    fileInput.value = '';
+    fileName.textContent = 'Belum ada foto';
+    renderGaleriList();
+  });
+
+  async function renderGaleriList() {
+    const { data: list, error } = await supabase
+      .from('galeri_list')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
+
+    if (error) return alert('Gagal ambil data galeri: ' + error.message);
+
+    grid.innerHTML = '';
+    list.forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'galeri-item';
+      div.innerHTML = `
+        <img src="${f.url}" alt="${f.nama}" />
+        <div class="galeri-caption">
+          <span>${f.nama}</span>
+          ${isAdmin ? `<button onclick="hapusFoto(${f.id}, '${f.path}')">🗑️</button>` : ''}
+        </div>`;
+      grid.appendChild(div);
     });
-  </script>
+  }
+
+  window.hapusFoto = async (id, path) => {
+    if (!confirm('Yakin hapus foto ini?')) return;
+
+    const { error: delError } = await supabase
+      .storage
+      .from('galeri')
+      .remove([path]);
+    if (delError) return alert('Gagal hapus dari Storage: ' + delError.message);
+
+    const { error: dbError } = await supabase
+      .from('galeri_list')
+      .delete()
+      .eq('id', id);
+    if (dbError) return alert('Gagal hapus dari DB: ' + dbError.message);
+
+    renderGaleriList();
+  };
+
+  renderGaleriList();
+});
+</script>
+
 </body>
 </html>
