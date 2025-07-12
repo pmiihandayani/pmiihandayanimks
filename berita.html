@@ -118,21 +118,25 @@
       const { data:list, error } = await supabase.from('berita').select('*').order('uploaded_at', {ascending:false});
       if (error) return alert('Gagal ambil data: '+error.message);
 
-      grid.innerHTML = '';
-      list.forEach(b => {
+      list.forEach(berita => {
+        const link = document.createElement('a');
+        link.href = `berita_detail.html?id=${berita.id}`;
+        link.style.textDecoration = 'none';
+        link.style.color = 'inherit';
+
         const card = document.createElement('div');
         card.className = 'news-card';
         card.innerHTML = `
-          <img src="${b.url}" class="news-image" alt="${b.judul}">
+          <img src="${berita.url}" class="news-image" />
           <div class="news-footer">
-            <h3>${b.judul}</h3>
-            <small>${new Date(b.uploaded_at).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</small>
-            <p>${b.deskripsi}</p>
-            ${isAdmin ? `<button onclick="hapusBerita(${b.id}, '${b.path}')">🗑️ Hapus</button>` : ''}
-          </div>`;
-        grid.appendChild(card);
-      });
-    }
+            <div style="font-weight:bold;">${berita.judul}</div>
+            <div style="font-size: 13px; color: #eee;">${berita.deskripsi}</div>
+          </div>
+        `;
+
+        link.appendChild(card);
+        grid.appendChild(link);
+    });
 
     window.hapusBerita = async (id, path) => {
       if (!confirm('Yakin ingin hapus berita ini?')) return;
